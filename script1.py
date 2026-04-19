@@ -220,3 +220,60 @@ ax.spines['right'].set_visible(False)
 
 plt.savefig('route_stops.png', dpi=150, bbox_inches='tight')
 plt.show()
+
+
+### task4 高峰小时系数计算
+
+## 高峰小时识别
+peak_hour = hourly_counts.idxmax()
+peak_hour_count = hourly_counts.max()
+print(f"高峰小时：{peak_hour:02d}:00-{peak_hour+1:02d}:00，刷卡量：{peak_hour_count} 次")
+peak_hour_data = df_type0[df_type0['hour'] == peak_hour].copy()
+# 如果minute列不存在，则创建
+if 'minute' not in peak_hour_data.columns:
+    peak_hour_data['minute'] = peak_hour_data['交易时间'].dt.minute
+
+## 5分钟粒度统计
+
+# 创建5分钟时间段标签
+def get_5min_interval(minute):
+    """返回5分钟时间段的起始分钟"""
+    return (minute // 5) * 5
+
+peak_hour_data['interval_5min'] = peak_hour_data['minute'].apply(get_5min_interval)
+
+# 统计每个5分钟时间段的刷卡量
+counts_5min = peak_hour_data.groupby('interval_5min').size()
+
+# 找出最大5分钟刷卡量及其时间段
+max_5min_start = counts_5min.idxmax()
+max_5min_count = counts_5min.max()
+max_5min_end = max_5min_start + 5
+
+# 计算 PHF5
+PHF5 = peak_hour_count / (12 * max_5min_count) if max_5min_count > 0 else 0
+print(f"最大5分钟刷卡量（{peak_hour:02d}:{max_5min_start:02d}~{peak_hour+1 if max_5min_end >= 60 else peak_hour:02d}:{max_5min_end if max_5min_end < 60 else max_5min_end-60:02d}）：{max_5min_count} 次")
+print(f"PHF5 = {peak_hour_count} / (12 × {max_5min_count}) = {PHF5:.4f}")
+
+## 15分钟粒度统计
+
+# 创建15分钟时间段标签
+def get_15min_interval(minute):
+    """返回15分钟时间段的起始分钟"""
+    return (minute // 15) * 15
+
+peak_hour_data['interval_15min'] = peak_hour_data['minute'].apply(get_15min_interval)
+
+# 统计每个15分钟时间段的刷卡量
+counts_15min = peak_hour_data.groupby('interval_15min').size()
+
+# 找出最大15分钟刷卡量及其时间段
+max_15min_start = counts_15min.idxmax()
+max_15min_count = counts_15min.max()
+max_15min_end = max_15min_start + 15
+
+# 计算 PHF15
+PHF15 = peak_hour_count / (4 * max_15min_count) if max_15min_count > 0 else 0
+print(f"最大15分钟刷卡量（{peak_hour:02d}:{max_15min_start:02d}~{peak_hour+1 if max_15min_end >= 60 else peak_hour:02d}:{max_15min_end if max_15min_end < 60 else max_15min_end-60:02d}）：{max_15min_count} 次")
+print(f"PHF15 = {peak_hour_count} / (4 × {max_15min_count}) = {PHF15:.4f}")
+print()
