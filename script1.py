@@ -327,3 +327,36 @@ else:
     missing_files = expected_files - actual_files
     if missing_files:
         print(f"缺少的文件: {sorted(missing_files)}")
+
+
+### task6 服务绩效排名与热力图
+## 排名统计
+print()
+print("Top 10 排名统计（按服务人次）")
+
+# Top 10 驾驶员
+top10_drivers = df['驾驶员编号'].value_counts().head(10)
+print("\n【Top 10 驾驶员】")
+for i, (driver_id, count) in enumerate(top10_drivers.items(), 1):
+    print(f"{i:2d}\t{int(driver_id):8d}\t{count:8}")
+
+# Top 10 线路
+top10_routes = df['线路号'].value_counts().head(10)
+print("\n【Top 10 线路】")
+print("排名\t线路号\t\t服务人次")
+for i, (route_id, count) in enumerate(top10_routes.items(), 1):
+    print(f"{i:2d}\t{int(route_id):6d}\t\t{count:8}")
+
+# Top 10 上车站点
+top10_stations = df['上车站点'].value_counts().head(10)
+print("\n【Top 10 上车站点】")
+print("排名\t上车站点\t服务人次")
+for i, (station_id, count) in enumerate(top10_stations.items(), 1):
+    print(f"{i:2d}\t{int(station_id):6d}\t\t{count:8}")
+
+# Top 10 车辆
+top10_vehicles = df['车辆编号'].value_counts().head(10)
+print("\n【Top 10 车辆】")
+print("排名\t车辆编号\t服务人次")
+for i, (vehicle_id, count) in enumerate(top10_vehicles.items(), 1):
+    print(f"{i:2d}\t{int(vehicle_id):8d}\t{count:8}")
