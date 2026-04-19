@@ -277,3 +277,53 @@ PHF15 = peak_hour_count / (4 * max_15min_count) if max_15min_count > 0 else 0
 print(f"最大15分钟刷卡量（{peak_hour:02d}:{max_15min_start:02d}~{peak_hour+1 if max_15min_end >= 60 else peak_hour:02d}:{max_15min_end if max_15min_end < 60 else max_15min_end-60:02d}）：{max_15min_count} 次")
 print(f"PHF15 = {peak_hour_count} / (4 × {max_15min_count}) = {PHF15:.4f}")
 print()
+
+
+### task5 线路驾驶员信息批量导出
+
+# 筛选线路号在 1101 至 1120 之间的所有记录
+df_filtered = df[(df['线路号'] >= 1101) & (df['线路号'] <= 1120)].copy()
+# 新建文件夹
+if not os.path.exists('线路驾驶员信息'):
+    os.makedirs('线路驾驶员信息')
+
+# 获取所有符合条件的线路号
+route_numbers = sorted(df_filtered['线路号'].unique())
+
+for route_num in route_numbers:
+    # 筛选当前线路的数据
+    route_data = df_filtered[df_filtered['线路号'] == route_num]
+    # 获取车辆编号和驾驶员的对应关系（去重）
+    vehicle_driver_pairs = route_data[['车辆编号', '驾驶员编号']].drop_duplicates()
+    # 按车辆编号排序
+    vehicle_driver_pairs = vehicle_driver_pairs.sort_values('车辆编号')
+    # 生成文件名
+    filename = f"{int(route_num)}.txt"
+    filepath = os.path.join('线路驾驶员信息', filename)
+    # 写入文件
+    with open(filepath, 'w', encoding='utf-8') as f:
+        # 写入标题行
+        f.write(f"线路号: {int(route_num)}\n")
+        f.write("车辆编号\t驾驶员编号\n")
+        # 写入数据行
+        for _, row in vehicle_driver_pairs.iterrows():
+            f.write(f"{int(row['车辆编号'])}\t\t{int(row['驾驶员编号'])}\n")
+    # 打印文件路径
+    print(f"✓ {os.path.abspath(filepath)}")
+
+# 验证文件生成
+generated_files = os.listdir('线路驾驶员信息')
+txt_files = [f for f in generated_files if f.endswith('.txt')]
+
+print(f"预期生成文件数: 20")
+print(f"实际生成文件数: {len(txt_files)}")
+
+if len(txt_files) == 20:
+    print("✓ 所有20个文件全部生成成功！")
+else:
+    print(f"⚠ 文件数量不匹配，缺少 {20 - len(txt_files)} 个文件")
+    expected_files = {f"{i}.txt" for i in range(1101, 1121)}
+    actual_files = set(txt_files)
+    missing_files = expected_files - actual_files
+    if missing_files:
+        print(f"缺少的文件: {sorted(missing_files)}")
