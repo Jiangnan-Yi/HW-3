@@ -36,3 +36,39 @@ if missing_counts.sum() > 0:
     print(f"\n存在缺失值，已删除 {rows_deleted} 行")
 else:
     print("0\n无缺失值，无需删除行\n")
+
+
+### task2 时间分布分析
+
+##早晚时段刷卡量统计
+
+df_type0 = df[df['刷卡类型'] == 0]
+total_type0 = len(df_type0)
+# 使用 np.where 创建时段标识列（在筛选后的数据上操作）
+df_type0 = df_type0.copy()
+df_type0['time_period'] = np.where(
+    df_type0['hour'] < 7,     # 条件1：早峰前时段
+    '早峰前时段',              # 条件1为真时的值
+    np.where(
+        df_type0['hour'] >= 22,  # 条件2：深夜时段
+        '深夜时段',               # 条件2为真时的值
+        '其他时段'                # 两个条件都不满足时的值
+    )
+)
+# 统计各时段刷卡量
+morning_type0 = np.where(
+    df_type0['time_period'] == '早峰前时段',
+    1,
+    0
+).sum()
+night_type0 = np.where(
+    df_type0['time_period'] == '深夜时段',
+    1,
+    0
+).sum()
+#计算占比
+morning_pct = (morning_type0 / total_type0) * 100 if total_type0 > 0 else 0#计算占比
+night_pct = (night_type0 / total_type0) * 100 if total_type0 > 0 else 0
+print(f"早峰前时段（交易时间早于 07:00）刷卡量为{morning_type0}，占全天的{morning_pct:.2f}%")
+print(f"深夜时段（交易时间晚于 22:00）刷卡量为{night_type0}，占全天的{night_pct:.2f}%")
+print()
