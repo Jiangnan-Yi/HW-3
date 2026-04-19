@@ -360,3 +360,48 @@ print("\n【Top 10 车辆】")
 print("排名\t车辆编号\t服务人次")
 for i, (vehicle_id, count) in enumerate(top10_vehicles.items(), 1):
     print(f"{i:2d}\t{int(vehicle_id):8d}\t{count:8}")
+
+## 热力图可视化
+# 创建 4x10 的数据矩阵
+heatmap_data = pd.DataFrame({
+    '司机': top10_drivers.values,
+    '线路': top10_routes.values,
+    '上车站点': top10_stations.values,
+    '车辆': top10_vehicles.values
+}).T  # 转置，使行为维度，列为排名
+
+# 设置列名
+heatmap_data.columns = [f'Top{i}' for i in range(1, 11)]
+heatmap_data.index = ['司机', '线路', '上车站点', '车辆']
+
+# 绘制热力图
+fig, ax = plt.subplots(figsize=(14, 6))
+sns.heatmap(
+    heatmap_data,
+    annot=True,  # 显示数值
+    fmt='d',
+    cmap='YlOrRd',
+    ax=ax,
+    cbar_kws={'label': '服务人次（次）'},  # 颜色条标签
+    linewidths=0.5,
+    linecolor='white',
+    annot_kws={'size': 10, 'weight': 'bold'}  # 标注文字样式
+)
+
+# 设置标题
+ax.set_title('公交服务绩效热力图\n服务人次最多的 Top 10 实体对比',
+             fontsize=16, fontweight='bold', pad=20)
+
+# 设置 x 轴标签旋转 0 度
+ax.set_xticklabels(ax.get_xticklabels(), rotation=0, fontsize=11)
+ax.set_yticklabels(ax.get_yticklabels(), rotation=0, fontsize=11)
+
+# 设置轴标签
+ax.set_xlabel('排名', fontsize=12, fontweight='bold')
+ax.set_ylabel('维度', fontsize=12, fontweight='bold')
+
+plt.savefig('performance_heatmap.png', dpi=150, bbox_inches='tight')
+plt.show()
+
+# 服务绩效规律：
+print('\n服务绩效规律：司机0.0和90422201.0的服务人次远超同行,线路46003的客流量异常高，编号为0的车辆的载客量断崖式领先于其他车辆，承载了很大一部分的客流')
