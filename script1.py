@@ -116,3 +116,107 @@ ax.legend(handles=legend_elements, loc='upper right', fontsize=10, framealpha=0.
 
 plt.savefig('hour_distribution.png', dpi=150, bbox_inches='tight')
 plt.show()
+
+
+# task3 线路站点分析
+def analyze_route_stops(df, route_col='线路号', stops_col='ride_stops'):
+    """
+    计算各线路乘客的平均搭乘站点数及其标准差。
+    Parameters
+    ----------
+    df : pd.DataFrame  预处理后的数据集
+    route_col : str    线路号列名
+    stops_col : str    搭乘站点数列名
+    Returns
+    -------
+    pd.DataFrame
+    包含列：线路号、mean_stops、std_stops，按 mean_stops 降序排列"""
+    # 按线路号分组，计算均值和标准差
+    route_stats = df.groupby(route_col)[stops_col].agg(['mean', 'std']).reset_index()
+    # 重命名列
+    route_stats.columns = ['线路号', 'mean_stops', 'std_stops']
+    # 处理可能的 NaN 值（当某线路只有一条记录时，std 为 NaN）
+    route_stats['std_stops'] = route_stats['std_stops'].fillna(0)
+    # 按 mean_stops 降序排列
+    route_stats = route_stats.sort_values('mean_stops', ascending=False).reset_index(drop=True)
+    return route_stats
+
+route_stats_df = analyze_route_stops(df)
+print("各线路平均搭乘站点数及标准差（前10行）：")
+print(route_stats_df.head(10).to_string(index=False))
+print()
+
+## 使用 seaborn barplot 绘制水平条形图
+
+# 取均值最高的前15条线路
+top15_routes = route_stats_df.head(15).copy()
+# 转换为字符串类型
+top15_routes['线路号'] = top15_routes['线路号'].astype(str)
+# 按mean_stops升序排列
+top15_routes = top15_routes.sort_values('mean_stops', ascending=True)
+
+# 创建图形
+fig, ax = plt.subplots(figsize=(10, 8))
+
+bars = sns.barplot(
+    data=top15_routes,
+    x='mean_stops',        # 平均搭乘站点数
+    y='线路号',             # 线路号
+    hue='线路号',           # 将y变量赋值给 hue
+    legend=False,
+    ax=ax,
+    palette='Blues_d',
+    err_kws={
+        'color': 'black',
+        'linewidth': 1.5
+    },
+    capsize=0.3
+)
+
+# 添加误差棒（显示标准差）
+for i, (_, row) in enumerate(top15_routes.iterrows()):
+    mean_val = row['mean_stops']
+    std_val = row['std_stops']
+    # 绘制水平误差棒
+    ax.errorbar(
+        x=mean_val,
+        y=i,
+        xerr=std_val,
+        capsize=0.3,
+        color='black',
+        linewidth=1.0
+    )
+
+# 计算最大均值+最大标准差，作为x轴的上限
+max_mean = top15_routes['mean_stops'].max()
+max_std = top15_routes.loc[top15_routes['mean_stops'].idxmax(), 'std_stops']
+x_max = max_mean + max_std + 3  # 留出边距
+ax.set_xlim(0, x_max)
+
+# 设置标题和标签
+ax.set_title('平均搭乘站点数最高的前15条线路', fontsize=16, fontweight='bold', pad=20)
+ax.set_xlabel('平均搭乘站点数', fontsize=12, fontweight='bold')
+ax.set_ylabel('线路号', fontsize=12, fontweight='bold')
+
+# 添加网格线
+ax.xaxis.grid(True, linestyle='--', alpha=0.7, linewidth=0.5)
+ax.set_axisbelow(True)
+
+# 添加数值标签
+for i, (_, row) in enumerate(top15_routes.iterrows()):
+    mean_val = row['mean_stops']
+    std_val = row['std_stops']
+    ax.text(
+        mean_val + std_val + 0.1,
+        i,
+        f'  {mean_val:.2f} ± {std_val:.2f}',
+        va='center',
+        fontsize=9
+    )
+
+# 去掉上右的边框线
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+plt.savefig('route_stops.png', dpi=150, bbox_inches='tight')
+plt.show()
