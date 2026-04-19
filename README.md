@@ -5,9 +5,9 @@
 
 ## 2. 核心 Prompt 迭代记录
 初代 Prompt：
-使用 seaborn 水平条形图（barplot） 对analyze_route_stops函数返回的结果（取均值最高的前15条线路）进行可视化，要求：
-○	误差棒（errorbar）显示标准差，capsize=0.3
-○	颜色使用 seaborn palette（如 "Blues_d"）
+使用 seaborn 水平条形图（barplot） 对analyze_route_stops函数返回的结果（取均值最高的前15条线路）进行可视化，要求：\n
+○	误差棒（errorbar）显示标准差，capsize=0.3\n
+○	颜色使用 seaborn palette（如 "Blues_d"）\n
 ○	包含中文标题、x/y 轴中文标签，x 轴范围从 0 起始
 ○	图像保存为 route_stops.png（dpi=150）
 AI 生成的问题：误差棒超出了图表的范围导致显示不完全
